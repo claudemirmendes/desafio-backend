@@ -1,7 +1,7 @@
 docker:
 	@docker build -t web .
 	@docker-compose build
-	@docker-compose up
+	@docker-compose up -d
 
 start:
 	@docker-compose start
