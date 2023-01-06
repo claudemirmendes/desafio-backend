@@ -1,31 +1,18 @@
-FROM ruby:3.2.0-alpine3.17 AS builder
+FROM ruby:3.2.0
 
-RUN apk add \
-  build-base \
-  postgresql-dev
-
-COPY Gemfile* .
-
-RUN bundle install
-
-FROM ruby:3.2.0-alpine3.17 AS runner
-
-RUN apk add \
-    tzdata \
+# Install node 14-LTS and yarn
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get update -qq && apt-get install -qq --no-install-recommends \
     nodejs \
-    postgresql-dev
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+RUN npm install -g yarn@1
 
-ENV LANG=C.UTF-8 \
-  BUNDLE_JOBS=4 \
-  BUNDLE_RETRY=3
-
-WORKDIR /usr/src/app
-
-COPY --from=builder /usr/local/bundle/ /usr/local/bundle/
-
-COPY . .
-
-ENTRYPOINT ["./entrypoint.sh"]
+WORKDIR /app
+COPY Gemfile /app/Gemfile
+COPY Gemfile.lock /app/Gemfile.lock
+RUN bundle install
+COPY . /app
 
 EXPOSE 3000
 
